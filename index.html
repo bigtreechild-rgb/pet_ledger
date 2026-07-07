@@ -242,6 +242,22 @@ h2.sec:first-child{margin-top:2px}
 .ach-row.done .ar{color:var(--grass)}
 .ach-progress{font-family:var(--font-hand); text-align:center; font-size:14px; color:var(--grass-dk); margin-bottom:10px}
 
+
+/* 塔麻可吉狀態 */
+.ranch .r-poop{position:absolute; z-index:2; font-size:16px; animation:poopBob 2s ease-in-out infinite;
+  filter:drop-shadow(0 2px 3px rgba(40,56,47,.15)); pointer-events:none}
+@keyframes poopBob{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
+.ranch .r-pet .rp-status{position:absolute; top:-6px; left:-8px; display:flex; gap:2px; font-size:12px; z-index:6}
+.ranch .r-pet.sick .rp-body{animation:sickWobble 1.5s ease-in-out infinite}
+.ranch .r-pet.sick .rp-face{filter:hue-rotate(80deg) brightness(.85) drop-shadow(0 3px 4px rgba(40,56,47,.25))}
+@keyframes sickWobble{0%,100%{transform:rotate(0)}30%{transform:rotate(-3deg) translateY(1px)}70%{transform:rotate(3deg) translateY(1px)}}
+.pet-hero .ph-age{font-size:12px; color:var(--mute); margin-top:2px}
+.pet-hero .ph-traits{display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-top:6px}
+.pet-hero .trait{font-size:11.5px; background:var(--bg); padding:3px 10px; border-radius:20px; font-weight:700; color:var(--grass-dk)}
+.bar .f-clean{background:linear-gradient(90deg,#7BC8F0,#4AA3E0)}
+.feed-row.four{grid-template-columns:repeat(4,1fr)}
+.feed-btn .fl{font-size:12px}
+
 /* 紀錄清單 */
 .rec-item{display:flex; align-items:center; gap:10px; padding:10px 4px; border-bottom:1px dashed var(--line)}
 .rec-item:last-child{border-bottom:none}
@@ -540,9 +556,11 @@ const CATS = {
 };
 const STAGES = [{name:'幼體', exp:0, scale:.8},{name:'成長期', exp:100, scale:1},{name:'成體', exp:300, scale:1.2}];
 const FEEDS = [
-  {id:'snack', e:'🍪', n:'小點心', cost:20,  hun:20, exp:10},
-  {id:'can',   e:'🥫', n:'高級罐罐', cost:60, hun:55, exp:35},
-  {id:'pat',   e:'🫳', n:'摸摸',   cost:0,   hun:0,  exp:3, mood:20, cd:60*1000},
+  {id:'snack', e:'🍪', n:'小點心',   cost:20,  hun:20, exp:10},
+  {id:'can',   e:'🥫', n:'高級罐罐', cost:60,  hun:55, exp:35},
+  {id:'bath',  e:'🛁', n:'洗澡',    cost:30,  hun:0,  exp:5,  clean:50},
+  {id:'med',   e:'💊', n:'看醫生',   cost:100, hun:10, exp:0,  heal:true},
+  {id:'pat',   e:'🫳', n:'摸摸',    cost:0,   hun:0,  exp:3,  mood:20, cd:60*1000},
 ];
 /* ═══════════ 裝飾品 ═══════════ */
 const DECOS = [
@@ -600,10 +618,18 @@ const sp = id => SPECIES.find(s=>s.id===id);
 function tickPets(){
   const now = Date.now();
   S.pets.forEach(p=>{
+    if(p.clean===undefined){ p.clean=70; p.sick=false; p.bornAt=p.bornAt||now; p.poops=p.poops||0; p.feedCount=p.feedCount||0; p.bathCount=p.bathCount||0; p.patCount=p.patCount||0; }
     const hrs = (now - (p.lastTick||now)) / 3600000;
     if(hrs > 0.02){
-      p.hunger = Math.max(0, p.hunger - hrs*2.5);   // 每小時 -2.5
+      p.hunger = Math.max(0, p.hunger - hrs*2.5);
       p.mood   = Math.max(0, p.mood   - hrs*1.5);
+      p.clean  = Math.max(0, p.clean  - hrs*3);    // 每小時 -3
+      // 髒了就會產生便便
+      if(p.clean < 30 && Math.random() < 0.3) p.poops = Math.min((p.poops||0)+1, 5);
+      // 太髒+太餓 → 生病
+      if(p.hunger < 15 && p.clean < 15 && !p.sick) p.sick = true;
+      // 生病時心情加速下降
+      if(p.sick) p.mood = Math.max(0, p.mood - hrs*2);
       p.lastTick = now;
     }
   });
@@ -814,9 +840,31 @@ function feed(feedId){
     if(Date.now()-last < f.cd) return toast('剛摸過了,牠還在害羞 (,,・ω・,,)');
     S.lastPat[p.id]=Date.now();
     p.mood = Math.min(100, p.mood + f.mood);
+    p.patCount = (p.patCount||0) + 1;
     p.exp += f.exp;
     toast(`摸摸 ${p.name} 💗 心情+${f.mood}`);
     bubbleSay('呼嚕嚕嚕~');
+  }else if(f.id==='bath'){
+    if(S.coins < f.cost) return toast(`金幣不夠洗澡,記帳賺 🪙 吧!`);
+    if(p.clean >= 95) return toast(`${p.name} 已經香香的了!`);
+    S.coins -= f.cost;
+    p.clean = Math.min(100, (p.clean||0) + f.clean);
+    p.poops = 0;
+    p.mood = Math.min(100, p.mood + 10);
+    p.exp += f.exp;
+    p.bathCount = (p.bathCount||0) + 1;
+    toast(`🛁 ${p.name} 洗得香噴噴!`);
+    bubbleSay(['好舒服~泡泡浴!','香香的我~','✨ 閃亮亮!','洗好了,神清氣爽!'][Math.floor(Math.random()*4)]);
+  }else if(f.id==='med'){
+    if(!p.sick) return toast(`${p.name} 很健康,不需要看醫生喔!`);
+    if(S.coins < f.cost) return toast(`看醫生要 ${f.cost} 🪙,趕快記帳!`);
+    S.coins -= f.cost;
+    p.sick = false;
+    p.hunger = Math.min(100, p.hunger + f.hun);
+    p.clean = Math.min(100, (p.clean||0) + 20);
+    p.mood = Math.min(100, p.mood + 15);
+    toast(`💊 ${p.name} 看完醫生,病好了!`);
+    bubbleSay('謝謝你帶我看醫生 🥺💗');
   }else{
     if(S.coins < f.cost) return toast(`金幣不夠買${f.n},記帳賺 🪙 吧!`);
     if(p.hunger >= 100) return toast(`${p.name} 已經吃超飽了!`);
@@ -824,6 +872,7 @@ function feed(feedId){
     p.hunger = Math.min(100, p.hunger + f.hun);
     p.mood = Math.min(100, p.mood + 5);
     p.exp += f.exp;
+    p.feedCount = (p.feedCount||0) + 1;
     toast(`${f.e} ${p.name} 吃得好開心!EXP+${f.exp}`);
     bubbleSay(['好好吃!','嗷嗚嗷嗚','再來一份?','是罐罐的味道!'][Math.floor(Math.random()*4)]);
   }
@@ -865,6 +914,24 @@ function renamePet(pid){
   if(name && name.trim()){ p.name = name.trim().slice(0,8); save(); renderAll(); }
 }
 
+/* ═══════════ 個性系統 ═══════════ */
+function petAge(p){ return Math.floor((Date.now()-(p.bornAt||Date.now()))/86400000); }
+function petTraits(p){
+  const traits = [];
+  const fc = p.feedCount||0, bc = p.bathCount||0, pc = p.patCount||0, age = petAge(p);
+  if(fc > 30) traits.push('🍔 大胃王');
+  else if(fc > 0 && p.hunger > 80) traits.push('😋 貪吃鬼');
+  if(bc > 15) traits.push('✨ 愛乾淨');
+  else if((p.clean||70) < 25) traits.push('🐷 邋遢蟲');
+  if(pc > 20) traits.push('💗 撒嬌精');
+  if(p.mood > 85) traits.push('😸 樂天派');
+  else if(p.mood < 20) traits.push('😿 憂鬱貓');
+  if(age >= 30) traits.push('👴 老居民');
+  if(p.exp >= 300) traits.push('💪 滿級王者');
+  if(p.sick) traits.push('🤒 生病中');
+  return traits.length ? traits : ['🌱 還在觀察中'];
+}
+
 function renderPetPage(){
   const p = activePet();
   if(!p){
@@ -880,16 +947,21 @@ function renderPetPage(){
     <div class="pname"><span class="rarity-dot" style="background:${RARITY[spc.r].c}"></span>${p.name}
       <span class="edit" onclick="renamePet(${p.id})">✏️</span></div>
     <div class="stagechip">${st.name}${nx?` · 距離${nx.name}還差 ${nx.exp-p.exp} EXP`:' · 滿級!'}</div>
+    <div class="ph-age">🎂 出生第 ${petAge(p)} 天${p.sick?' · <span style="color:var(--berry);font-weight:700">🤒 生病中!快帶去看醫生</span>':''}</div>
+    <div class="ph-traits">${petTraits(p).map(t=>'<span class="trait">'+t+'</span>').join('')}</div>
     <div class="bars">
       <div class="bar-row"><span class="bl">🍖 飽食</span><div class="bar"><i class="f-hun" style="width:${p.hunger}%"></i></div><span class="bv">${Math.round(p.hunger)}/100</span></div>
       <div class="bar-row"><span class="bl">💗 心情</span><div class="bar"><i class="f-mood" style="width:${p.mood}%"></i></div><span class="bv">${Math.round(p.mood)}/100</span></div>
+      <div class="bar-row"><span class="bl">🧼 清潔</span><div class="bar"><i class="f-clean" style="width:${Math.round(p.clean||0)}%"></i></div><span class="bv">${Math.round(p.clean||0)}/100</span></div>
       <div class="bar-row"><span class="bl">🌱 成長</span><div class="bar"><i class="f-exp" style="width:${expPct}%"></i></div><span class="bv">${expPct}%</span></div>
     </div>
     ${hungry?`<div style="margin-top:10px;font-size:13px;color:var(--berry);font-weight:700">${p.name} 餓扁了…快記帳賺金幣買點心!</div>`:''}
     <button onclick="releasePet('${String(p.id)}')" style="margin-top:12px;border:none;background:none;color:var(--mute);font-size:12.5px;font-family:var(--font-body);cursor:pointer;text-decoration:underline">🕊️ 幫 ${p.name} 找新家(送養)</button>
     ${spc.r!=='UR' && S.pets.length>1 ? `<div style="margin-top:12px"><span onclick="rehome('${p.id}')" style="font-size:12.5px;color:var(--mute);cursor:pointer;text-decoration:underline dotted">🕊️ 幫 ${p.name} 找新家(退還 🪙 ${REHOME[spc.r]})</span></div>` : ''}
-    <div class="feed-row">${FEEDS.map(f=>
-      `<button class="feed-btn" onclick="feed('${f.id}')"><span class="fe">${f.e}</span><span class="fl">${f.n}</span><span class="fp">${f.cost>0?'🪙 '+f.cost:'免費'}</span></button>`).join('')}
+    <div class="feed-row four">${FEEDS.map(f=>{
+      const highlight = f.id==='med'&&p.sick ? 'border-color:var(--berry);background:#FFF0F2;animation:pulse 1s infinite' : '';
+      return 
+      `<button class="feed-btn" style="${highlight}" onclick="feed('${f.id}')"><span class="fe">${f.e}</span><span class="fl">${f.n}</span><span class="fp">${f.cost>0?'🪙 '+f.cost:'免費'}</span></button>`}).join('')}
     </div>`;
   $('petList').innerHTML = S.pets.map(pet=>{
     const s2 = sp(pet.speciesId), st2 = stageOf(pet);
@@ -983,12 +1055,14 @@ function renderRanch(){
     if(!ranchPetPositions[pid]) ranchPetPositions[pid] = { ...randomRanchPos(), prevLeft:null, state:'idle' };
     const pos = ranchPetPositions[pid];
     const hungry = pet.hunger < 25;
-    const sleeping = pet.mood < 20 && !hungry;
+    const sleeping = pet.mood < 20 && !hungry && !pet.sick;
+    const dirty = (pet.clean||70) < 30;
+    const sick = !!pet.sick;
     const isActive = pet.id === S.activePet;
     const sz = Math.round(30 * st.scale);
     const shadowW = Math.round(20 * st.scale);
     const facingLeft = pos.prevLeft !== null && pos.left < pos.prevLeft;
-    const stateClass = sleeping ? 'sleeping' : (pos.state === 'walking' ? 'walking' : 'idle');
+    const stateClass = sick ? 'sick' : sleeping ? 'sleeping' : (pos.state === 'walking' ? 'walking' : 'idle');
     const el = document.createElement('div');
     el.className = `r-pet ${stateClass} ${facingLeft ? 'face-left' : ''}`;
     el.dataset.pid = pid;
@@ -1000,6 +1074,7 @@ function renderRanch(){
           : spc.e}</div>
         <div class="rp-shadow" style="width:${shadowW}px"></div>
         ${sleeping?'<div class="rp-zzz">💤</div>':''}
+        <div class="rp-status">${sick?'🤒':''}${dirty?'💩':''}${hungry?'':''}${pet.mood>90&&!sick?'💗':''}</div>
       </div>
       <div class="rp-tag" style="${isActive?'background:var(--sun);color:#fff;':''}">${pet.name}${hungry?' 😿':''}</div>`;
     el.onclick=(e)=>{
@@ -1007,10 +1082,26 @@ function renderRanch(){
       S.activePet = pet.id; save(); renderAll();
       showRanchBubble(ranch, el, hungry
         ? '好餓…記帳買罐罐給我 🥺'
+        : sick ? '咳咳…帶我去看醫生 🥺'
         : sleeping ? '呼…呼…(睡著了)'
         : ['嗨嗨~','選我選我!','散步好開心~','呼嚕嚕~','今天記帳了嗎?','要帶我去哪玩?','🎵'][Math.floor(Math.random()*7)]);
     };
     ranch.appendChild(el);
+  }
+  // 便便散佈在牧場上
+  let totalPoops = 0;
+  S.pets.forEach(pet=>{
+    const poops = pet.poops||0;
+    totalPoops += poops;
+  });
+  for(let pp=0;pp<Math.min(totalPoops,12);pp++){
+    const poo = document.createElement('div');
+    poo.className = 'r-poop';
+    poo.textContent = '💩';
+    poo.style.left = (8 + Math.random()*80) + '%';
+    poo.style.bottom = (5 + Math.random()*25) + '%';
+    poo.style.animationDelay = (Math.random()*2)+'s';
+    ranch.appendChild(poo);
   }
 }
 
@@ -1038,7 +1129,9 @@ function wanderPets(){
     const pos = ranchPetPositions[pid];
     const sleeping = pet.mood < 20 && pet.hunger >= 25;
 
-    if(sleeping){
+    if(pet.sick){
+      pos.state = 'sick';
+    } else if(sleeping){
       pos.state = 'sleeping';
     } else {
       // 60% 機率走動, 40% 停下來
