@@ -110,6 +110,37 @@ h2.sec:first-child{margin-top:2px}
 .reward-hint{text-align:center; font-size:12.5px; color:var(--mute); margin-top:10px}
 .reward-hint b{color:var(--sun-dk)}
 
+.date-row{display:flex; align-items:center; gap:8px; margin-bottom:12px}
+.date-row label{font-size:13px; font-weight:700; color:var(--mute); flex-shrink:0}
+.date-row input{flex:1; border:2px solid var(--line); border-radius:12px; padding:9px 12px; font-size:15px;
+  font-family:var(--font-body); outline:none; background:#fff; color:var(--ink)}
+.date-row input:focus{border-color:var(--sun)}
+.month-nav{display:flex; align-items:center; justify-content:center; gap:14px; margin-bottom:12px}
+.month-nav button{border:2px solid var(--line); background:#fff; width:36px; height:36px; border-radius:12px;
+  font-size:18px; font-weight:900; color:var(--grass-dk); cursor:pointer}
+.month-nav button:disabled{opacity:.3}
+.month-nav .ml{font-family:var(--font-hand); font-size:18px; font-weight:700; min-width:120px; text-align:center}
+.sum-grid.three{grid-template-columns:repeat(3,1fr)}
+.sum-grid.three .sv{font-size:17px}
+.trend{display:flex; align-items:flex-end; gap:6px; height:150px; padding-top:8px}
+.trend .tcol{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; gap:3px}
+.trend .tbars{display:flex; align-items:flex-end; gap:3px; flex:1; width:100%; justify-content:center}
+.trend .tbar{width:12px; border-radius:5px 5px 0 0; min-height:2px; transition:height .4s}
+.trend .tbar.te{background:linear-gradient(180deg,var(--berry),#F0A0AB)}
+.trend .tbar.ti{background:linear-gradient(180deg,var(--grass),#8FC9A6)}
+.trend .tlabel{font-size:11px; color:var(--mute); font-weight:700}
+.trend .tcol.cur .tlabel{color:var(--grass-dk)}
+.trend-legend{display:flex; gap:14px; justify-content:center; font-size:12px; color:var(--mute); margin-top:8px}
+.trend-legend i{display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:4px; vertical-align:-1px}
+.edit-form input,.edit-form select{width:100%; border:2px solid var(--line); border-radius:12px; padding:9px 12px;
+  font-size:15px; font-family:var(--font-body); outline:none; margin-bottom:10px; background:#fff; color:var(--ink); text-align:left}
+.edit-form input:focus,.edit-form select:focus{border-color:var(--sun)}
+.edit-form .tt{display:flex; background:var(--bg); border-radius:12px; padding:4px; margin-bottom:10px}
+.edit-form .tt button{flex:1; border:none; background:transparent; padding:8px; border-radius:9px;
+  font-family:var(--font-body); font-size:14px; font-weight:700; color:var(--mute); cursor:pointer}
+.edit-form .tt button.on.exp{background:var(--berry); color:#fff}
+.edit-form .tt button.on.inc{background:var(--grass); color:#fff}
+
 /* 紀錄清單 */
 .rec-item{display:flex; align-items:center; gap:10px; padding:10px 4px; border-bottom:1px dashed var(--line)}
 .rec-item:last-child{border-bottom:none}
@@ -273,6 +304,7 @@ nav button.on .ni{filter:none; transform:translateY(-2px)}
         </div>
         <div class="amt-row"><span class="cur">NT$</span><input id="amtInput" type="number" inputmode="decimal" placeholder="0"></div>
         <div class="cats" id="catGrid"></div>
+        <div class="date-row"><label>📅 日期</label><input id="dateInput" type="date"></div>
         <input class="note-input" id="noteInput" type="text" maxlength="30" placeholder="備註(選填,寫了寵物更開心 +2 🪙)">
         <button class="save-btn" id="saveBtn">✏️ 記下這一筆</button>
         <div class="reward-hint" id="rewardHint"></div>
@@ -319,13 +351,21 @@ nav button.on .ni{filter:none; transform:translateY(-2px)}
 
     <!-- 統計 -->
     <section class="panel" id="p-stats">
-      <h2 class="sec">📅 本月收支</h2>
-      <div class="sum-grid">
+      <div class="month-nav">
+        <button id="mPrev">‹</button><div class="ml" id="mLabel"></div><button id="mNext">›</button>
+      </div>
+      <div class="sum-grid three">
         <div class="sum-box"><div class="sl">支出</div><div class="sv exp" id="sumExp">$0</div></div>
         <div class="sum-box"><div class="sl">收入</div><div class="sv inc" id="sumInc">$0</div></div>
+        <div class="sum-box"><div class="sl">結餘</div><div class="sv" id="sumBal">$0</div></div>
       </div>
       <h2 class="sec">🍰 支出分類</h2>
       <div class="card" id="catChart"></div>
+      <h2 class="sec">📈 近六個月趨勢</h2>
+      <div class="card">
+        <div class="trend" id="trendChart"></div>
+        <div class="trend-legend"><span><i style="background:var(--berry)"></i>支出</span><span><i style="background:var(--grass)"></i>收入</span></div>
+      </div>
       <h2 class="sec">🏆 成就小數字</h2>
       <div class="card" id="funStats"></div>
       <h2 class="sec">💾 資料備份</h2>
@@ -466,7 +506,7 @@ function renderCats(){
 $('btnExp').onclick=()=>{ curType='expense'; curCat=null; $('btnExp').classList.add('on'); $('btnInc').classList.remove('on'); renderCats(); };
 $('btnInc').onclick=()=>{ curType='income';  curCat=null; $('btnInc').classList.add('on'); $('btnExp').classList.remove('on'); renderCats(); };
 
-function todayRecordCount(){ return S.records.filter(r=>r.day===todayStr()).length; }
+function todayRecordCount(){ const t=todayStr(); return S.records.filter(r=>(r.madeDay||r.day)===t).length; }
 function calcReward(hasNote){
   const n = todayRecordCount();
   let r = (n >= DAILY_FULL) ? OVER_REWARD : BASE_REWARD;
@@ -492,6 +532,7 @@ $('saveBtn').onclick=()=>{
   if(!amt || amt<=0) return toast('請先輸入金額 💸');
   if(!curCat) return toast('選一個分類吧 🏷️');
   const note = $('noteInput').value.trim();
+  const recDay = $('dateInput').value || todayStr();
   const {r, parts} = calcReward(!!note);
   const day = todayStr();
 
@@ -502,13 +543,14 @@ $('saveBtn').onclick=()=>{
     S.streakDays = (S.streakLast===yStr) ? S.streakDays+1 : 1;
     S.streakLast = day;
   }
-  S.records.unshift({ id:Date.now(), type:curType, amount:amt, cat:curCat, note, day, ts:Date.now() });
+  S.records.unshift({ id:Date.now(), type:curType, amount:amt, cat:curCat, note, day:recDay, madeDay:day, ts:Date.now() });
+  S.records.sort((a,b)=> a.day===b.day ? b.ts-a.ts : (a.day<b.day?1:-1));
   S.coins += r;
   save();
   flyCoins($('saveBtn'), Math.min(6, Math.ceil(r/15)));
   toast(`記好了!+${r} 🪙 ${parts.length?('('+parts.join('、')+')'):''}`);
   bubbleSay(['好棒!','有記有保庇 🪙','錢錢變成喜歡的紀錄了','我吃得到罐罐了嗎?'][Math.floor(Math.random()*4)]);
-  $('amtInput').value=''; $('noteInput').value=''; curCat=null;
+  $('amtInput').value=''; $('noteInput').value=''; curCat=null; $('dateInput').value=todayStr();
   renderAll();
 };
 
@@ -517,16 +559,18 @@ function renderRecords(){
   if(!list.length){ $('recList').innerHTML = `<div class="empty-tip">還沒有紀錄~記下第一筆,領取開帳大禮 🎁</div>`; return; }
   $('recList').innerHTML = list.map(rec=>{
     const c = CATS[rec.type].find(x=>x.id===rec.cat) || {e:'📦',n:'其他'};
-    return `<div class="rec-item">
+    return `<div class="rec-item" data-eid="${rec.id}" style="cursor:pointer">
       <div class="re">${c.e}</div>
-      <div class="rmid"><div class="rnote">${rec.note || c.n}</div><div class="rdate">${rec.day} · ${c.n}</div></div>
+      <div class="rmid"><div class="rnote">${rec.note || c.n}</div><div class="rdate">${rec.day} · ${c.n} ✎</div></div>
       <div class="ramt ${rec.type==='expense'?'exp':'inc'}">${rec.type==='expense'?'-':'+'}${fmt(rec.amount)}</div>
       <button class="rdel" data-id="${rec.id}">✕</button>
     </div>`;
   }).join('');
-  $('recList').querySelectorAll('.rdel').forEach(b=>b.onclick=()=>{
+  $('recList').querySelectorAll('.rdel').forEach(b=>b.onclick=(e)=>{
+    e.stopPropagation();
     S.records = S.records.filter(r=>r.id!=b.dataset.id); save(); renderAll(); toast('已刪除該筆紀錄');
   });
+  $('recList').querySelectorAll('.rec-item').forEach(el=>el.onclick=()=>editRecord(el.dataset.eid));
 }
 
 /* ═══════════ 扭蛋 ═══════════ */
@@ -746,21 +790,53 @@ function renderDex(){
 
 /* ═══════════ 統計 ═══════════ */
 function renderStats(){
-  const m = todayStr().slice(0,7);
-  const month = S.records.filter(r=>r.day.startsWith(m));
+  const curYM = todayStr().slice(0,7);
+  const [sy, sm] = statMonth.split('-');
+  $('mLabel').textContent = `${sy} 年 ${Number(sm)} 月`;
+  $('mNext').disabled = statMonth >= curYM;
+  const month = S.records.filter(r=>r.day.startsWith(statMonth));
   const exp = month.filter(r=>r.type==='expense').reduce((a,b)=>a+b.amount,0);
   const inc = month.filter(r=>r.type==='income').reduce((a,b)=>a+b.amount,0);
   $('sumExp').textContent = fmt(exp);
   $('sumInc').textContent = fmt(inc);
+  const bal = inc - exp;
+  $('sumBal').textContent = (bal<0?'-':'') + fmt(Math.abs(bal));
+  $('sumBal').style.color = bal>=0 ? 'var(--grass)' : 'var(--berry)';
+
+  // 分類長條(含百分比)
   const byCat = {};
   month.filter(r=>r.type==='expense').forEach(r=>byCat[r.cat]=(byCat[r.cat]||0)+r.amount);
   const rows = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
-  const max = rows.length ? rows[0][1] : 1;
+  const maxV = rows.length ? rows[0][1] : 1;
   $('catChart').innerHTML = rows.length ? rows.map(([cid,v])=>{
     const c = CATS.expense.find(x=>x.id===cid)||{e:'📦',n:'其他'};
+    const pct = exp>0 ? Math.round(v/exp*100) : 0;
     return `<div class="cat-bar-row"><span class="cbe">${c.e}</span><span class="cbl">${c.n}</span>
-      <div class="cbb"><i style="width:${Math.max(6,v/max*100)}%"></i></div><span class="cbv">${fmt(v)}</span></div>`;
-  }).join('') : `<div class="empty-tip">本月還沒有支出紀錄</div>`;
+      <div class="cbb"><i style="width:${Math.max(6,v/maxV*100)}%"></i></div>
+      <span class="cbv">${fmt(v)}<br><span style="font-size:10.5px;color:var(--mute)">${pct}%</span></span></div>`;
+  }).join('') : `<div class="empty-tip">這個月沒有支出紀錄</div>`;
+
+  // 近六個月趨勢(以選定月份為終點)
+  const months = [];
+  for(let i=5;i>=0;i--) months.push(monthShift(statMonth,-i));
+  const data = months.map(ym=>{
+    const rs = S.records.filter(r=>r.day.startsWith(ym));
+    return { ym,
+      e: rs.filter(r=>r.type==='expense').reduce((a,b)=>a+b.amount,0),
+      i: rs.filter(r=>r.type==='income').reduce((a,b)=>a+b.amount,0) };
+  });
+  const tMax = Math.max(1, ...data.map(d=>Math.max(d.e,d.i)));
+  $('trendChart').innerHTML = data.map(d=>{
+    const eh = Math.round(d.e/tMax*100), ih = Math.round(d.i/tMax*100);
+    return `<div class="tcol ${d.ym===statMonth?'cur':''}" title="支出 ${fmt(d.e)} / 收入 ${fmt(d.i)}">
+      <div class="tbars">
+        <div class="tbar te" style="height:${Math.max(2,eh)}%"></div>
+        <div class="tbar ti" style="height:${Math.max(2,ih)}%"></div>
+      </div>
+      <div class="tlabel">${Number(d.ym.split('-')[1])}月</div>
+    </div>`;
+  }).join('');
+
   $('funStats').innerHTML = `
     <div style="line-height:2.1; font-size:14px">
       ✏️ 總記帳筆數:<b>${S.records.length}</b> 筆<br>
@@ -769,6 +845,56 @@ function renderStats(){
       🐾 牧場住民:<b>${S.pets.length}</b> 隻(${Object.keys(S.dex).length} 種)
     </div>`;
 }
+
+/* ═══════════ 編輯紀錄 ═══════════ */
+function editRecord(idStr){
+  const rec = S.records.find(r=>String(r.id)===idStr); if(!rec) return;
+  let eType = rec.type;
+  const catOptions = t => CATS[t].map(c=>`<option value="${c.id}">${c.e} ${c.n}</option>`).join('');
+  modal(`<div class="m-title">✏️ 修改這筆紀錄</div>
+    <div class="edit-form" style="text-align:left">
+      <div class="tt">
+        <button id="etExp" class="${eType==='expense'?'on exp':'exp'}">💸 支出</button>
+        <button id="etInc" class="${eType==='income'?'on inc':'inc'}">💰 收入</button>
+      </div>
+      <input id="eAmt" type="number" inputmode="decimal" value="${rec.amount}" placeholder="金額">
+      <select id="eCat">${catOptions(eType)}</select>
+      <input id="eDate" type="date" value="${rec.day}">
+      <input id="eNote" type="text" maxlength="30" value="${(rec.note||'').replace(/"/g,'&quot;')}" placeholder="備註">
+    </div>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:4px">
+      <button class="m-btn" style="background:var(--mute);box-shadow:0 4px 0 #5E6E64" onclick="closeModal()">取消</button>
+      <button class="m-btn" id="eSave">儲存修改</button>
+    </div>`);
+  $('eCat').value = rec.cat;
+  const switchType = t => {
+    eType = t;
+    $('etExp').className = t==='expense' ? 'on exp' : 'exp';
+    $('etInc').className = t==='income'  ? 'on inc' : 'inc';
+    $('eCat').innerHTML = catOptions(t);
+  };
+  $('etExp').onclick=()=>switchType('expense');
+  $('etInc').onclick=()=>switchType('income');
+  $('eSave').onclick=()=>{
+    const amt = parseFloat($('eAmt').value);
+    if(!amt || amt<=0) return toast('金額怪怪的,再確認一下');
+    if(!$('eDate').value) return toast('日期不能空白喔');
+    rec.type = eType; rec.amount = amt; rec.cat = $('eCat').value;
+    rec.day = $('eDate').value; rec.note = $('eNote').value.trim();
+    S.records.sort((a,b)=> a.day===b.day ? b.ts-a.ts : (a.day<b.day?1:-1));
+    save(); closeModal(); renderAll(); toast('修改好了 ✅');
+  };
+}
+
+/* ═══════════ 統計月份切換 ═══════════ */
+let statMonth = todayStr().slice(0,7);
+function monthShift(ym, d){
+  const [y,m] = ym.split('-').map(Number);
+  const dt = new Date(y, m-1+d, 1);
+  return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`;
+}
+$('mPrev').onclick=()=>{ statMonth = monthShift(statMonth,-1); renderStats(); };
+$('mNext').onclick=()=>{ if(statMonth < todayStr().slice(0,7)){ statMonth = monthShift(statMonth,1); renderStats(); } };
 
 /* ═══════════ 導覽與總渲染 ═══════════ */
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
@@ -787,6 +913,7 @@ function renderAll(){
   renderTop(); renderScene(); renderCats(); updateRewardHint();
   renderRecords(); renderPetPage(); renderDex(); renderStats(); renderGachaBanner();
 }
+$('dateInput').value = todayStr();
 renderAll();
 setInterval(()=>{ tickPets(); renderTop(); }, 60000);
 
