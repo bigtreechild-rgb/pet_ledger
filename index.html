@@ -141,6 +141,107 @@ h2.sec:first-child{margin-top:2px}
 .edit-form .tt button.on.exp{background:var(--berry); color:#fff}
 .edit-form .tt button.on.inc{background:var(--grass); color:#fff}
 
+
+
+/* 牧場大地圖 */
+.ranch{position:relative; width:100%; height:320px; border-radius:var(--radius); overflow:hidden; margin-bottom:12px;
+  background:linear-gradient(to bottom,#CFEAF6 0%,var(--sky) 40%,#DFF0D8 41%,#C4E2B8 70%,#B5D9A6 100%);
+  box-shadow:inset 0 -6px 20px rgba(40,56,47,.08), 0 4px 16px rgba(40,56,47,.1); touch-action:none; cursor:pointer}
+.ranch .r-sun{position:absolute; top:14px; right:20px; width:38px; height:38px; border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#FFE59A,var(--sun)); box-shadow:0 0 20px rgba(242,179,61,.5);
+  animation:sunpulse 5s ease-in-out infinite}
+.ranch .r-cloud{position:absolute; background:#fff; border-radius:30px; opacity:.85; animation:drift linear infinite}
+.ranch .r-cloud::before,.ranch .r-cloud::after{content:'';position:absolute;background:#fff;border-radius:50%}
+.ranch .rc1{width:50px;height:16px;top:24px;left:-60px;animation-duration:40s}
+.ranch .rc1::before{width:20px;height:20px;top:-10px;left:8px}
+.ranch .rc1::after{width:16px;height:16px;top:-7px;left:26px}
+.ranch .rc2{width:38px;height:12px;top:50px;left:-40px;animation-duration:55s;animation-delay:-22s}
+.ranch .rc2::before{width:15px;height:15px;top:-7px;left:6px}
+.ranch .rc2::after{width:12px;height:12px;top:-6px;left:19px}
+.ranch .r-hill{position:absolute; border-radius:50%}
+.ranch .rh1{width:280px;height:100px;bottom:-40px;left:-50px;background:#89C58F}
+.ranch .rh2{width:320px;height:90px;bottom:-35px;right:-70px;background:#7BBF82}
+.ranch .r-path{position:absolute;bottom:30px;left:25%;width:50%;height:12px;
+  background:rgba(180,155,110,.35);border-radius:50%;filter:blur(3px)}
+.ranch .r-deco{position:absolute; transition:all .3s; filter:drop-shadow(0 2px 3px rgba(40,56,47,.18)); z-index:2}
+.ranch .r-pet{position:absolute; z-index:3; transition:left 3s ease-in-out, bottom 3s ease-in-out;
+  display:flex; flex-direction:column; align-items:center; cursor:pointer; user-select:none}
+.ranch .r-pet .rp-body{display:flex; flex-direction:column; align-items:center; position:relative}
+.ranch .r-pet .rp-face{filter:drop-shadow(0 3px 4px rgba(40,56,47,.25)); transition:transform .2s}
+.ranch .r-pet .rp-face.hungry{filter:grayscale(.5) drop-shadow(0 3px 4px rgba(40,56,47,.25))}
+.ranch .r-pet:active .rp-face{transform:scale(1.18)!important}
+.ranch .r-pet.walking .rp-body{animation:petWalk .45s ease-in-out infinite}
+.ranch .r-pet.idle .rp-body{animation:petIdle 2.5s ease-in-out infinite}
+.ranch .r-pet.face-left .rp-face{transform:scaleX(-1)}
+.ranch .r-pet .rp-shadow{width:24px; height:8px; background:rgba(40,56,47,.15); border-radius:50%;
+  margin-top:-2px; filter:blur(2px); transition:width .3s}
+.ranch .r-pet.walking .rp-shadow{animation:shadowPulse .45s ease-in-out infinite}
+.ranch .r-pet .rp-tag{background:rgba(255,255,255,.9); padding:1px 8px; border-radius:12px;
+  font-family:var(--font-hand); font-size:10.5px; font-weight:700; margin-top:1px;
+  box-shadow:0 1px 4px rgba(40,56,47,.15); white-space:nowrap; max-width:70px; overflow:hidden; text-overflow:ellipsis}
+.ranch .r-pet .rp-zzz{position:absolute; top:-8px; right:-12px; font-size:11px; opacity:0}
+.ranch .r-pet.sleeping .rp-zzz{animation:zzz 2s ease-in-out infinite}
+.ranch .r-pet.sleeping .rp-body{animation:petSleep 3s ease-in-out infinite}
+@keyframes petWalk{
+  0%,100%{transform:translateY(0) rotate(0deg)}
+  15%{transform:translateY(-5px) rotate(-3deg)}
+  30%{transform:translateY(0) rotate(0deg)}
+  65%{transform:translateY(-5px) rotate(3deg)}
+  80%{transform:translateY(0) rotate(0deg)}
+}
+@keyframes petIdle{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-3px)}
+}
+@keyframes petSleep{
+  0%,100%{transform:translateY(0) rotate(-5deg)}
+  50%{transform:translateY(1px) rotate(-5deg)}
+}
+@keyframes shadowPulse{
+  0%,100%{transform:scaleX(1)}
+  50%{transform:scaleX(.7)}
+}
+@keyframes zzz{
+  0%{opacity:0; transform:translate(0,0) scale(.7)}
+  50%{opacity:1; transform:translate(4px,-10px) scale(1)}
+  100%{opacity:0; transform:translate(8px,-18px) scale(.7)}
+}
+.ranch .r-bubble{position:absolute; z-index:5; background:#fff; padding:4px 10px; border-radius:12px;
+  font-family:var(--font-hand); font-size:12px; box-shadow:0 2px 8px rgba(40,56,47,.18);
+  opacity:0; transition:opacity .25s; pointer-events:none; white-space:nowrap}
+.ranch .r-bubble.show{opacity:1}
+.ranch .r-bubble::after{content:'';position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);
+  border:5px solid transparent;border-top-color:#fff;border-bottom:none}
+.ranch .empty-ranch{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-family:var(--font-hand);font-size:15px;color:var(--grass-dk);background:rgba(255,255,255,.8);
+  padding:12px 20px;border-radius:16px;text-align:center;z-index:3}
+.ranch .pet-count{position:absolute;top:10px;left:12px;background:rgba(255,255,255,.88);
+  padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;color:var(--grass-dk);z-index:4}
+
+/* 牧場裝飾 */
+.deco-shop{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:10px}
+.deco-item{background:#fff; border:2px solid var(--line); border-radius:16px; padding:10px 4px 8px; text-align:center; cursor:pointer; transition:.15s; position:relative}
+.deco-item:active{transform:scale(.95)}
+.deco-item .di-e{font-size:28px}
+.deco-item .di-n{font-size:12px; font-weight:700; margin-top:2px}
+.deco-item .di-p{font-size:11.5px; color:var(--sun-dk); font-weight:700}
+.deco-item.owned{border-color:var(--grass); background:#F0F8F2}
+.deco-item.owned .di-p{color:var(--grass)}
+.scene .deco{position:absolute; transition:all .3s; filter:drop-shadow(0 2px 3px rgba(40,56,47,.2))}
+
+/* 成就 */
+.ach-list{display:flex; flex-direction:column; gap:8px}
+.ach-row{display:flex; align-items:center; gap:10px; padding:10px 12px; background:#fff; border-radius:14px; border:2px solid var(--line)}
+.ach-row.done{border-color:var(--sun); background:#FFFBF0}
+.ach-row .ae{font-size:26px; flex-shrink:0; width:36px; text-align:center}
+.ach-row.locked .ae{filter:grayscale(1) opacity(.35)}
+.ach-row .amain{flex:1; min-width:0}
+.ach-row .an{font-size:14px; font-weight:700}
+.ach-row .ad{font-size:12px; color:var(--mute); margin-top:1px}
+.ach-row .ar{font-size:12px; font-weight:900; color:var(--sun-dk); flex-shrink:0}
+.ach-row.done .ar{color:var(--grass)}
+.ach-progress{font-family:var(--font-hand); text-align:center; font-size:14px; color:var(--grass-dk); margin-bottom:10px}
+
 /* 紀錄清單 */
 .rec-item{display:flex; align-items:center; gap:10px; padding:10px 4px; border-bottom:1px dashed var(--line)}
 .rec-item:last-child{border-bottom:none}
@@ -315,8 +416,11 @@ nav button.on .ni{filter:none; transform:translateY(-2px)}
 
     <!-- 寵物 -->
     <section class="panel" id="p-pet">
+      <div class="ranch" id="ranch"></div>
       <div class="card pet-hero" id="petHero"></div>
-      <h2 class="sec">🏡 我的寵物 <span style="font-size:13px;color:var(--mute);font-weight:400">(點選切換主寵)</span></h2>
+      <h2 class="sec">🏡 牧場裝飾 <span style="font-size:13px;color:var(--mute);font-weight:400">(買來佈置牧場)</span></h2>
+      <div class="deco-shop" id="decoShop"></div>
+      <h2 class="sec">🐾 我的寵物 <span style="font-size:13px;color:var(--mute);font-weight:400">(點選切換主寵)</span></h2>
       <div class="pet-list" id="petList"></div>
     </section>
 
@@ -366,7 +470,10 @@ nav button.on .ni{filter:none; transform:translateY(-2px)}
         <div class="trend" id="trendChart"></div>
         <div class="trend-legend"><span><i style="background:var(--berry)"></i>支出</span><span><i style="background:var(--grass)"></i>收入</span></div>
       </div>
-      <h2 class="sec">🏆 成就小數字</h2>
+      <h2 class="sec">🏆 成就徽章</h2>
+      <div class="ach-progress" id="achProgress"></div>
+      <div class="ach-list" id="achList"></div>
+      <h2 class="sec">📋 帳本小數字</h2>
       <div class="card" id="funStats"></div>
       <h2 class="sec">💾 資料備份</h2>
       <div class="card">
@@ -437,6 +544,42 @@ const FEEDS = [
   {id:'can',   e:'🥫', n:'高級罐罐', cost:60, hun:55, exp:35},
   {id:'pat',   e:'🫳', n:'摸摸',   cost:0,   hun:0,  exp:3, mood:20, cd:60*1000},
 ];
+/* ═══════════ 裝飾品 ═══════════ */
+const DECOS = [
+  {id:'shroom', e:'🍄', n:'蘑菇叢',   cost:40,  x:'18%', y:'22%', sz:18},
+  {id:'sunfl',  e:'🌻', n:'向日葵田', cost:50,  x:'78%', y:'18%', sz:22},
+  {id:'bench',  e:'🪑', n:'木長椅',   cost:60,  x:'62%', y:'30%', sz:20},
+  {id:'lamp',   e:'🏮', n:'小燈籠',   cost:70,  x:'88%', y:'42%', sz:20},
+  {id:'tree',   e:'🌳', n:'大橡樹',   cost:80,  x:'8%',  y:'35%', sz:32},
+  {id:'tent',   e:'⛺', n:'露營帳篷', cost:150, x:'5%',  y:'15%', sz:26},
+  {id:'fount',  e:'⛲', n:'噴水池',   cost:250, x:'45%', y:'20%', sz:28},
+  {id:'windm',  e:'🎡', n:'風車',     cost:300, x:'30%', y:'50%', sz:34},
+  {id:'rainbow',e:'🌈', n:'彩虹拱門', cost:500, x:'42%', y:'65%', sz:40},
+];
+
+/* ═══════════ 成就定義 ═══════════ */
+const ACHIEVEMENTS = [
+  {id:'first',    e:'✏️', n:'踏出第一步',     d:'記下第一筆帳',         reward:20,  check:()=>S.records.length>=1},
+  {id:'r10',      e:'📝', n:'初心記帳人',     d:'累積記帳 10 筆',      reward:30,  check:()=>S.records.length>=10},
+  {id:'r50',      e:'📒', n:'帳簿小達人',     d:'累積記帳 50 筆',      reward:80,  check:()=>S.records.length>=50},
+  {id:'r100',     e:'📚', n:'百筆不撓',       d:'累積記帳 100 筆',     reward:150, check:()=>S.records.length>=100},
+  {id:'r500',     e:'🏛️', n:'記帳之神',       d:'累積記帳 500 筆',     reward:500, check:()=>S.records.length>=500},
+  {id:'s7',       e:'🔥', n:'一週不間斷',     d:'連續記帳 7 天',       reward:50,  check:()=>S.streakDays>=7},
+  {id:'s30',      e:'💪', n:'月月不落',       d:'連續記帳 30 天',      reward:200, check:()=>S.streakDays>=30},
+  {id:'s100',     e:'👑', n:'百日鐵人',       d:'連續記帳 100 天',     reward:800, check:()=>S.streakDays>=100},
+  {id:'pull1',    e:'🥚', n:'初次扭蛋',       d:'第一次抽寵物',        reward:20,  check:()=>S.totalPulls>=1},
+  {id:'pull50',   e:'🎰', n:'扭蛋狂人',       d:'累積扭蛋 50 次',      reward:100, check:()=>S.totalPulls>=50},
+  {id:'dex5',     e:'📖', n:'小小收藏家',     d:'圖鑑收集 5 種',       reward:60,  check:()=>Object.keys(S.dex).length>=5},
+  {id:'dex10',    e:'🗺️', n:'動物探險家',     d:'圖鑑收集 10 種',      reward:150, check:()=>Object.keys(S.dex).length>=10},
+  {id:'dexall',   e:'🌟', n:'全圖鑑制霸',     d:'收集全部物種',        reward:1000,check:()=>Object.keys(S.dex).length>=SPECIES.length},
+  {id:'pet5',     e:'🐾', n:'毛孩幼兒園',     d:'牧場同時養 5 隻',     reward:50,  check:()=>S.pets.length>=5},
+  {id:'pet15',    e:'🏕️', n:'動物大家庭',     d:'牧場同時養 15 隻',    reward:150, check:()=>S.pets.length>=15},
+  {id:'deco3',    e:'🪴', n:'小小造景師',     d:'購買 3 種牧場裝飾',   reward:60,  check:()=>(S.decos||[]).length>=3},
+  {id:'deco6',    e:'🏡', n:'牧場設計師',     d:'購買 6 種牧場裝飾',   reward:200, check:()=>(S.decos||[]).length>=6},
+  {id:'decoall',  e:'🏰', n:'夢想牧場',       d:'蒐集全部裝飾品',      reward:500, check:()=>(S.decos||[]).length>=DECOS.length},
+  {id:'ur',       e:'🐱', n:'家人到齊',       d:'擁有蝦比比和湯圓',    reward:200, check:()=>!!(S.dex['shabibi']&&S.dex['tangyuan'])},
+];
+
 const PULL_ONE = 100, PULL_TEN = 900;
 const BASE_REWARD = 15, FIRST_BONUS = 30, NOTE_BONUS = 2, DAILY_FULL = 8, OVER_REWARD = 3;
 
@@ -551,7 +694,7 @@ $('saveBtn').onclick=()=>{
   toast(`記好了!+${r} 🪙 ${parts.length?('('+parts.join('、')+')'):''}`);
   bubbleSay(['好棒!','有記有保庇 🪙','錢錢變成喜歡的紀錄了','我吃得到罐罐了嗎?'][Math.floor(Math.random()*4)]);
   $('amtInput').value=''; $('noteInput').value=''; curCat=null; $('dateInput').value=todayStr();
-  renderAll();
+  renderAll(); checkAchievements();
 };
 
 function renderRecords(){
@@ -639,7 +782,7 @@ function doPull(times){
         <button class="m-btn" onclick="closeModal()">全部帶回家</button>`);
     }
     setTimeout(()=>{ egg.innerHTML='🥚'; }, 3000);
-    renderAll();
+    renderAll(); setTimeout(()=>checkAchievements(),600);
   }, 900);
 }
 $('secretCode').onclick=()=>{
@@ -691,6 +834,7 @@ function feed(feedId){
       <div class="m-title">${p.name} 進化成${now.name}了!</div>
       <div class="m-sub">你的用心記帳養出了健康寶寶 🎓</div>
       <button class="m-btn" onclick="closeModal()">太感動了</button>`);
+    setTimeout(()=>checkAchievements(),500);
   }
 }
 
@@ -760,14 +904,219 @@ function renderPetPage(){
   });
 }
 
+/* ═══════════ 裝飾商店 ═══════════ */
+if(!S.decos) S.decos = [];
+if(!S.achDone) S.achDone = {};
+
+function buyDeco(id){
+  const d = DECOS.find(x=>x.id===id); if(!d) return;
+  if(S.decos.includes(id)) return toast(`${d.n} 已經買過囉!`);
+  if(S.coins < d.cost) return toast(`金幣不夠買${d.n},差 ${d.cost-S.coins} 🪙`);
+  S.coins -= d.cost;
+  S.decos.push(id);
+  save(); renderAll(); checkAchievements();
+  toast(`${d.e} ${d.n} 已放進牧場!`);
+  renderRanch();
+  bubbleSay(['牧場變漂亮了!','好喜歡新傢俱~','越來越有家的感覺'][Math.floor(Math.random()*3)]);
+}
+
+function renderDecoShop(){
+  $('decoShop').innerHTML = DECOS.map(d=>{
+    const owned = S.decos.includes(d.id);
+    return `<div class="deco-item ${owned?'owned':''}" onclick="${owned?'':'buyDeco(\''+d.id+'\')'}">
+      <div class="di-e">${d.e}</div><div class="di-n">${d.n}</div>
+      <div class="di-p">${owned?'✅ 已擺放':'🪙 '+d.cost}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderSceneDecos(){
+  // 頂部小場景裝飾(縮小版)
+  document.querySelectorAll('.scene .deco').forEach(el=>el.remove());
+  const scene = document.querySelector('.scene');
+  S.decos.forEach(id=>{
+    const d = DECOS.find(x=>x.id===id); if(!d) return;
+    const el = document.createElement('div');
+    el.className = 'deco';
+    el.textContent = d.e;
+    el.style.cssText = `left:${d.x};bottom:${d.y};font-size:${Math.round(d.sz*0.6)}px`;
+    scene.appendChild(el);
+  });
+}
+
+/* ═══════════ 大牧場渲染 ═══════════ */
+let ranchPetPositions = {};
+let ranchBubbleTimer = null;
+
+function randomRanchPos(){
+  return { left: 12 + Math.random()*70, bottom: 8 + Math.random()*28 };
+}
+
+function renderRanch(){
+  const ranch = $('ranch'); if(!ranch) return;
+  ranch.innerHTML = `
+    <div class="r-sun"></div>
+    <div class="r-cloud rc1"></div><div class="r-cloud rc2"></div>
+    <div class="r-hill rh1"></div><div class="r-hill rh2"></div>
+    <div class="r-path"></div>
+    ${S.pets.length ? `<div class="pet-count">🐾 ${S.pets.length} 隻夥伴</div>` : ''}
+  `;
+  // 裝飾
+  S.decos.forEach(id=>{
+    const d = DECOS.find(x=>x.id===id); if(!d) return;
+    const el = document.createElement('div');
+    el.className = 'r-deco';
+    el.textContent = d.e;
+    el.style.cssText = `left:${d.x};bottom:${d.y};font-size:${d.sz}px`;
+    ranch.appendChild(el);
+  });
+  // 寵物們
+  if(!S.pets.length){
+    ranch.innerHTML += `<div class="empty-ranch">🥚 牧場空空的…<br>去扭蛋抽第一隻夥伴吧!</div>`;
+    return;
+  }
+  const maxShow = Math.min(S.pets.length, 20);
+  for(let i=0;i<maxShow;i++){
+    const pet = S.pets[i];
+    const spc = sp(pet.speciesId), st = stageOf(pet);
+    const pid = String(pet.id);
+    if(!ranchPetPositions[pid]) ranchPetPositions[pid] = { ...randomRanchPos(), prevLeft:null, state:'idle' };
+    const pos = ranchPetPositions[pid];
+    const hungry = pet.hunger < 25;
+    const sleeping = pet.mood < 20 && !hungry;
+    const isActive = pet.id === S.activePet;
+    const sz = Math.round(30 * st.scale);
+    const shadowW = Math.round(20 * st.scale);
+    const facingLeft = pos.prevLeft !== null && pos.left < pos.prevLeft;
+    const stateClass = sleeping ? 'sleeping' : (pos.state === 'walking' ? 'walking' : 'idle');
+    const el = document.createElement('div');
+    el.className = `r-pet ${stateClass} ${facingLeft ? 'face-left' : ''}`;
+    el.dataset.pid = pid;
+    el.style.left = pos.left + '%';
+    el.style.bottom = pos.bottom + '%';
+    el.innerHTML = `<div class="rp-body">
+        <div class="rp-face ${hungry?'hungry':''}" style="font-size:${sz}px">${spc.img
+          ? '<img src="'+spc.img+'" style="width:'+sz+'px;height:'+sz+'px;object-fit:contain" alt="'+spc.n+'">'
+          : spc.e}</div>
+        <div class="rp-shadow" style="width:${shadowW}px"></div>
+        ${sleeping?'<div class="rp-zzz">💤</div>':''}
+      </div>
+      <div class="rp-tag" style="${isActive?'background:var(--sun);color:#fff;':''}">${pet.name}${hungry?' 😿':''}</div>`;
+    el.onclick=(e)=>{
+      e.stopPropagation();
+      S.activePet = pet.id; save(); renderAll();
+      showRanchBubble(ranch, el, hungry
+        ? '好餓…記帳買罐罐給我 🥺'
+        : sleeping ? '呼…呼…(睡著了)'
+        : ['嗨嗨~','選我選我!','散步好開心~','呼嚕嚕~','今天記帳了嗎?','要帶我去哪玩?','🎵'][Math.floor(Math.random()*7)]);
+    };
+    ranch.appendChild(el);
+  }
+}
+
+function showRanchBubble(ranch, petEl, msg){
+  ranch.querySelectorAll('.r-bubble').forEach(b=>b.remove());
+  clearTimeout(ranchBubbleTimer);
+  const b = document.createElement('div');
+  b.className = 'r-bubble';
+  b.textContent = msg;
+  const rect = petEl.style;
+  b.style.left = rect.left;
+  b.style.bottom = `calc(${rect.bottom} + 42px)`;
+  ranch.appendChild(b);
+  requestAnimationFrame(()=>b.classList.add('show'));
+  ranchBubbleTimer = setTimeout(()=>b.classList.remove('show'), 2200);
+}
+
+// 寵物自動走動 + 走/停/睡狀態
+function wanderPets(){
+  const ranchEl = $('ranch'); if(!ranchEl) return;
+  const petEls = ranchEl.querySelectorAll('.r-pet');
+  S.pets.forEach((pet,i)=>{
+    const pid = String(pet.id);
+    if(!ranchPetPositions[pid]) ranchPetPositions[pid] = { ...randomRanchPos(), prevLeft:null, state:'idle' };
+    const pos = ranchPetPositions[pid];
+    const sleeping = pet.mood < 20 && pet.hunger >= 25;
+
+    if(sleeping){
+      pos.state = 'sleeping';
+    } else {
+      // 60% 機率走動, 40% 停下來
+      const willWalk = Math.random() < 0.6;
+      if(willWalk){
+        pos.prevLeft = pos.left;
+        pos.left = Math.max(5, Math.min(88, pos.left + (Math.random()*18-9)));
+        pos.bottom = Math.max(6, Math.min(34, pos.bottom + (Math.random()*8-4)));
+        pos.state = 'walking';
+      } else {
+        pos.prevLeft = null;
+        pos.state = 'idle';
+      }
+    }
+    if(i < petEls.length){
+      const el = petEls[i];
+      el.style.left = pos.left + '%';
+      el.style.bottom = pos.bottom + '%';
+      // 動態更新 class
+      el.classList.remove('walking','idle','sleeping','face-left');
+      el.classList.add(pos.state);
+      if(pos.prevLeft !== null && pos.left < pos.prevLeft) el.classList.add('face-left');
+    }
+  });
+}
+setInterval(wanderPets, 3200);
+
+/* ═══════════ 成就系統 ═══════════ */
+function checkAchievements(){
+  let newOnes = [];
+  ACHIEVEMENTS.forEach(a=>{
+    if(!S.achDone[a.id] && a.check()){
+      S.achDone[a.id] = Date.now();
+      S.coins += a.reward;
+      newOnes.push(a);
+    }
+  });
+  if(newOnes.length > 0){
+    save();
+    const first = newOnes[0];
+    if(newOnes.length === 1){
+      modal(`<div class="m-emoji">${first.e}</div>
+        <div class="m-title">🏅 成就解鎖!</div>
+        <div class="m-sub"><b>${first.n}</b><br>${first.d}<br><br>獎勵 <b>${first.reward} 🪙</b></div>
+        <button class="m-btn" onclick="closeModal()">領取</button>`);
+    } else {
+      const total = newOnes.reduce((a,b)=>a+b.reward,0);
+      modal(`<div class="m-emoji">🏅</div>
+        <div class="m-title">一口氣解鎖 ${newOnes.length} 個成就!</div>
+        <div class="m-sub">${newOnes.map(a=>`${a.e} ${a.n}`).join('<br>')}<br><br>共獲得 <b>${total} 🪙</b></div>
+        <button class="m-btn" onclick="closeModal()">全部領取</button>`);
+    }
+    renderAll();
+  }
+}
+
+function renderAchievements(){
+  const done = Object.keys(S.achDone).length;
+  $('achProgress').textContent = `已解鎖 ${done} / ${ACHIEVEMENTS.length} 個成就`;
+  $('achList').innerHTML = ACHIEVEMENTS.map(a=>{
+    const unlocked = !!S.achDone[a.id];
+    return `<div class="ach-row ${unlocked?'done':'locked'}">
+      <div class="ae">${a.e}</div>
+      <div class="amain"><div class="an">${unlocked ? a.n : '???'}</div><div class="ad">${a.d}</div></div>
+      <div class="ar">${unlocked ? '✅ 已解鎖' : '🪙 '+a.reward}</div>
+    </div>`;
+  }).join('');
+}
+
 /* ═══════════ 場景 ═══════════ */
 function renderScene(){
   const p = activePet();
   const stage = $('petStage');
-  if(!p){ stage.innerHTML = `<div class="no-pet">🥚 還沒有寵物,去扭蛋抽一隻吧!</div>`; return; }
+  if(!p){ stage.innerHTML = `<div class="no-pet">🥚 還沒有寵物,去扭蛋抽一隻吧!</div>`; renderSceneDecos(); return; }
   const spc = sp(p.speciesId), st = stageOf(p), hungry = p.hunger<25;
   stage.innerHTML = `<div class="pet-emoji ${hungry?'hungry':''}">${petFace(spc, Math.round(58*st.scale))}</div>
     <div class="pet-name-tag">${p.name}${hungry?' 😿':''}</div>`;
+  renderSceneDecos();
   stage.onclick=()=>{
     bubbleSay(hungry ? '好餓喔…記帳買點心給我 🥺' :
       ['今天記帳了嗎?','天氣真好~','🪙 叮叮噹噹','一起變有錢!','呼嚕嚕~'][Math.floor(Math.random()*5)]);
@@ -911,7 +1260,7 @@ function renderTop(){
 function renderAll(){
   tickPets();
   renderTop(); renderScene(); renderCats(); updateRewardHint();
-  renderRecords(); renderPetPage(); renderDex(); renderStats(); renderGachaBanner();
+  renderRecords(); renderPetPage(); renderRanch(); renderDecoShop(); renderDex(); renderStats(); renderAchievements(); renderGachaBanner();
 }
 $('dateInput').value = todayStr();
 renderAll();
@@ -961,7 +1310,7 @@ $('vipBtn').onclick=()=>{
     <div class="m-title">🎀 主人特權發動!</div>
     <div class="m-sub">生日驗證通過 🎂<br><b>${pool.map(s=>s.n).join('</b> 和 <b>')}</b> 聽到暗號一起跑來了!<br>(此特權僅此一次,好好珍惜)</div>
     <button class="m-btn" onclick="closeModal()">兩隻都抱緊</button>`);
-  renderAll();
+  renderAll(); setTimeout(()=>checkAchievements(),600);
 };
 
 /* ═══════════ 備份匯出 / 匯入 ═══════════ */
